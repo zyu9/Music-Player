@@ -1,12 +1,15 @@
 import java.io.*;
 import java.util.*;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*; 
 import javax.sound.sampled.*; 
 
 /**
  * Write a description of class MusicPlayer here.
  *
- * @author (zyu9)
- * @version (9/12/2020)
+ * @author (Zhiyan Yu)
+ * @version (9/12/2020-9/13/2020)
  */
 public class MusicPlayer
 {
@@ -17,13 +20,23 @@ public class MusicPlayer
     //current status of clip
     String status; 
     
+    //audio and input
     AudioInputStream audioInputStream;
-    String filePath;
+    AudioFormat format; 
+    DataLine.Info dataline; 
+    File file;
+    JFileChooser jfilechooser; 
     
     //constructor
     public MusicPlayer() throws UnsupportedAudioFileException,IOException,LineUnavailableException
     {
-        audioInputStream = AudioSystem.getAudioInputStream(new File(filePath));
+        jfilechooser = new JFileChooser();
+        jfilechooser.showOpenDialog(null);
+        file = jfilechooser.getSelectedFile();
+        audioInputStream = AudioSystem.getAudioInputStream(file);
+        format = audioInputStream.getFormat(); 
+        dataline = new DataLine.Info(Clip.class, format);
+        clip = (Clip) AudioSystem.getLine(dataline);
         clip = AudioSystem.getClip();
         clip.open(audioInputStream); 
         clip.loop(Clip.LOOP_CONTINUOUSLY); 
@@ -36,7 +49,6 @@ public class MusicPlayer
     public void startUp(){
         try
         { 
-            filePath = "Your path for the file"; 
             MusicPlayer musicPlayer =  new MusicPlayer();
               
             musicPlayer.play(); 
@@ -61,7 +73,6 @@ public class MusicPlayer
         { 
             System.out.println("Error with playing sound."); 
             ex.printStackTrace(); 
-          
         } 
     }
     
@@ -161,9 +172,8 @@ public class MusicPlayer
     public void resetAudioStream() throws UnsupportedAudioFileException, IOException, LineUnavailableException                                 
     { 
         audioInputStream = AudioSystem.getAudioInputStream( 
-        new File(filePath).getAbsoluteFile()); 
+        file.getAbsoluteFile()); 
         clip.open(audioInputStream); 
         clip.loop(Clip.LOOP_CONTINUOUSLY); 
     } 
-    
  } 

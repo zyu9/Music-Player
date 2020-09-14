@@ -1,0 +1,20 @@
+#BlueJ class context
+comment0.target=Audio
+comment0.text=\r\n\ Write\ a\ description\ of\ class\ Audio\ here.\r\n\r\n\ @author\ (zyu9)\r\n\ @version\ (9/13/2020)\r\n
+comment1.params=
+comment1.target=void\ openFile()
+comment2.params=
+comment2.target=void\ play()
+comment3.params=
+comment3.target=void\ pause()
+comment4.params=
+comment4.target=void\ resume()
+comment5.params=
+comment5.target=void\ restart()
+comment6.params=
+comment6.target=void\ stop()
+comment7.params=c
+comment7.target=void\ jump(long)
+comment8.params=
+comment8.target=void\ resetAudioStream()
+numComments=9
