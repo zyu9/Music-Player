@@ -10,10 +10,11 @@ import javax.swing.*;
  */
 public class GUI
 {
-    ImageIcon icon1, icon2, icon3, icon4;
+    ImageIcon icon1, icon2, icon3, icon4, icon5;
     JPanel mainPanel;
     JFrame theFrame;
     JMenuItem menuItem; 
+    JButton play, pause, stop, restart; 
     
     public void buildGUI(){
         theFrame = new JFrame("Music Player");
@@ -36,26 +37,32 @@ public class GUI
         icon1 = new ImageIcon("./play.png");
         icon2 = new ImageIcon("./pause.png");
         icon3 = new ImageIcon("./stop.png");
-        icon4 = new ImageIcon("./wallpaper.png");
+        icon4 = new ImageIcon("./restart.jpg");
+        icon5 = new ImageIcon("./wallpaper.jpg");
         
         theFrame.getContentPane().setBackground(Color.BLACK);
         
-        JButton play = new JButton(icon1);
+        play = new JButton(icon1);
         play.addActionListener(new MyPlayListener());
         play.setVisible(true);
         mainPanel.add(play);
         
-        JButton pause = new JButton(icon2);
+        pause = new JButton(icon2);
         pause.addActionListener(new MyPlayListener());
         pause.setVisible(true);
         mainPanel.add(pause);
         
-        JButton stop = new JButton(icon3);
+        stop = new JButton(icon3);
         stop.addActionListener(new MyStopListener());
         stop.setVisible(true);
         mainPanel.add(stop);
+        
+        restart = new JButton(icon3);
+        restart.addActionListener(new MyRestartListener());
+        restart.setVisible(true);
+        mainPanel.add(stop);
 
-        theFrame.add(new JLabel(icon4), BorderLayout.CENTER);
+        theFrame.add(new JLabel(icon5), BorderLayout.CENTER);
         theFrame.add(mainPanel, BorderLayout.SOUTH);
 
         theFrame.setSize(500, 500);
@@ -87,7 +94,13 @@ public class GUI
     public class MyPauseListener implements ActionListener{
         public void actionPerformed(ActionEvent e){
             Audio audio = new Audio();
-            audio.pause(); 
+            if(pause.getIcon() == icon2)
+            {
+              pause.setIcon(icon1);
+              audio.pause(); 
+           }else if(pause.getIcon() == icon1){
+               pause.setIcon(icon2);
+           }
         }
     }
     
@@ -98,4 +111,10 @@ public class GUI
         }
     }
     
+    public class MyRestartListener implements ActionListener{
+        public void actionPerformed(ActionEvent e){
+            Audio audio = new Audio();
+            audio.restart(); 
+        }
+    }
 }
