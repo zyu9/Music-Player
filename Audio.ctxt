@@ -17,4 +17,6 @@ comment7.params=c
 comment7.target=void\ jump(long)
 comment8.params=
 comment8.target=void\ resetAudioStream()
-numComments=9
+comment9.params=
+comment9.target=void\ exit()
+numComments=10

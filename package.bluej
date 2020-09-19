@@ -1,14 +1,14 @@
 #BlueJ package file
-dependency1.from=GUI
-dependency1.to=Audio
+dependency1.from=MusicPlayer
+dependency1.to=GUI
 dependency1.type=UsesDependency
-dependency2.from=MusicPlayer
-dependency2.to=GUI
+dependency2.from=GUI
+dependency2.to=Audio
 dependency2.type=UsesDependency
-editor.fx.0.height=635
-editor.fx.0.width=718
-editor.fx.0.x=542
-editor.fx.0.y=11
+editor.fx.0.height=632
+editor.fx.0.width=752
+editor.fx.0.x=474
+editor.fx.0.y=34
 objectbench.height=155
 objectbench.width=762
 package.divider.horizontal=0.6

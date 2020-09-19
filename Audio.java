@@ -136,4 +136,9 @@ public class Audio
         ex.getMessage(); 
       }
     } 
+    
+    //Method to exit
+    public void exit(){
+        System.exit(0);
+    }
 }

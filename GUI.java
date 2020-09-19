@@ -10,11 +10,17 @@ import javax.swing.*;
  */
 public class GUI
 {
-    ImageIcon icon1, icon2, icon3, icon4, icon5;
-    JPanel mainPanel;
-    JFrame theFrame;
-    JMenuItem menuItem; 
-    JButton play, pause, stop, restart; 
+    private static final String VERSION = "Version 0.2"; 
+    
+    private ImageIcon icon1, icon2, icon3, icon4, icon5;
+    private JPanel mainPanel;
+    private JFrame theFrame;
+    private JMenuItem menuItem1,menuItem2; 
+    private JList fileList;
+    private JSlider slider;
+    private JLabel infoLabel;
+    private JButton play, pause, stop, restart; 
+    //private List<Track> trackList;
     
     public void buildGUI(){
         theFrame = new JFrame("Music Player");
@@ -22,17 +28,11 @@ public class GUI
         BorderLayout layout = new BorderLayout();
         FlowLayout flow = new FlowLayout();
         
-        JMenuBar bar = new JMenuBar();
-        JMenu menu = new JMenu("Open");
-        bar.add(menu);
-        menuItem = new JMenuItem("Open");
-        menu.add(menuItem);
-        menuItem.addActionListener(new MyMenuItemListener());
+        menuBar(); 
 
         mainPanel = new JPanel();
         theFrame.setLayout(layout);
         mainPanel.setLayout(flow);
-        theFrame.setJMenuBar(bar);
 
         icon1 = new ImageIcon("./play.png");
         icon2 = new ImageIcon("./pause.png");
@@ -71,17 +71,61 @@ public class GUI
         theFrame.setFocusable(true);
     }
     
-    public class MyMenuItemListener implements ActionListener{
+    /**
+     * Create the frame's menu bar. 
+     */
+    private void menuBar(){
+        JMenuBar mbar = new JMenuBar();
+        JMenu menu; 
+        theFrame.setJMenuBar(mbar);
+        
+        //create the File menu
+        menu = new JMenu("File");
+        mbar.add(menu);
+        
+        menuItem1 = new JMenuItem("Open");
+        menuItem1.addActionListener(new MyMenuItem1Listener());
+        menu.add(menuItem1);
+        
+        menuItem2 = new JMenuItem("Exit");
+        menuItem2.addActionListener(new MyMenuItem2Listener());
+        menu.add(menuItem2);
+        
+        //create the Help menu
+        menu = new JMenu("Help");
+        mbar.add(menu);
+        
+        JMenuItem menuItem3 = new JMenuItem("About");
+        //menuItem3.addActionListener(new MyMenuItem3Listener());
+        menu.add(menuItem3);
+    }
+    
+    /**
+     * Display information about the selected song(name + length)
+     * @param message - displayed message
+     */
+    private void showInfo(String message){
+        infoLabel.setText(message);
+    }
+    
+    public class MyMenuItem1Listener implements ActionListener{
        public void actionPerformed(ActionEvent e) 
        {
          Audio audio = new Audio();
 
          if (e.getSource() instanceof JMenuItem) {
-           if (((JMenuItem) (e.getSource())) == menuItem) {
+           if (((JMenuItem) (e.getSource())) == menuItem1) {
                 audio.openFile();
            }
          }
        }
+    }
+    
+    public class MyMenuItem2Listener implements ActionListener{
+        public void actionPerformed(ActionEvent e){
+            Audio audio = new Audio();
+            audio.exit(); 
+        }
     }
     
     public class MyPlayListener implements ActionListener{
@@ -115,6 +159,21 @@ public class GUI
         public void actionPerformed(ActionEvent e){
             Audio audio = new Audio();
             audio.restart(); 
+        }
+    }
+    
+    public class MyPlayListListener implements ActionListener{
+        /**
+         * ActionListener method for display play list in a combo box
+         * @param e - details of the event
+         */
+        public void actionPerformed(ActionEvent e){
+            Audio audio = new Audio();
+            JComboBox box = (JComboBox)e.getSource();
+            String ordering = (String) box.getSelectedItem();
+            if(ordering != null) {
+                //audio.setListOrdering(ordering);
+            }
         }
     }
 }
