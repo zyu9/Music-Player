@@ -10,12 +10,16 @@ import javax.sound.sampled.*;
  */
 public class Audio
 {
+    private static final int SECONDS_IN_HOUR = 60 * 60;
+    private static final int SECONDS_IN_MINUTE = 60;
     //store current position
     Long current;
     Clip clip;
     
     //current status of clip
-    String status; 
+    boolean playCompleted;
+    boolean isStopped;
+    boolean isPaused; 
     
     //audio and input
     AudioInputStream audioInputStream;
@@ -25,60 +29,106 @@ public class Audio
     JFileChooser jfilechooser; 
     
     public void openFile() {
-        try{
+       try{
         jfilechooser = new JFileChooser();
         jfilechooser.showOpenDialog(null);
         file = jfilechooser.getSelectedFile();
         
         audioInputStream = AudioSystem.getAudioInputStream(file);
+        
         format = audioInputStream.getFormat(); 
+        
         dataline = new DataLine.Info(Clip.class, format);
+        
         clip = (Clip) AudioSystem.getLine(dataline);
         
         clip = AudioSystem.getClip();
-        clip.open(audioInputStream); 
-        clip.loop(Clip.LOOP_CONTINUOUSLY); 
+        
+        clip.open(audioInputStream);  
        }catch(Exception ex){
-           ex.getMessage();
+         ex.getMessage();
        }
     }
     
-    public void play() // Method to play the audio 
+    public long getClipSecondLength() {
+	return clip.getMicrosecondLength() / 1_000_000;
+    }
+    
+    public String getClipLengthString() {
+	String length = "";
+	long hour = 0;
+	long minute = 0;
+	long seconds = clip.getMicrosecondLength() / 1_000_000;
+		
+	System.out.println(seconds);
+		
+	if (seconds >= SECONDS_IN_HOUR) {
+	   hour = seconds / SECONDS_IN_HOUR;
+	   length = String.format("%02d:", hour);
+	} else {
+	   length += "00:";
+	}
+		
+	minute = seconds - hour * SECONDS_IN_HOUR;
+	if (minute >= SECONDS_IN_MINUTE) {
+	   minute = minute / SECONDS_IN_MINUTE;
+	   length += String.format("%02d:", minute);		
+	} else {
+	   minute = 0;
+	   length += "00:";
+	}
+		
+	long second = seconds - hour * SECONDS_IN_HOUR - minute * SECONDS_IN_MINUTE;
+		
+	length += String.format("%02d", second);
+		
+	return length;
+    }
+    
+    public void play() 
     { 
-        clip.start();  
-        status = "play"; 
+        clip.start(); 
+        
+        playCompleted = false;
+        isStopped = false; 
+        
+        while(!playCompleted){
+            try{
+                Thread.sleep(1000);
+            }catch(InterruptedException ex){
+                ex.printStackTrace();
+                
+                if(isStopped){
+                    clip.stop();
+                    break; 
+                }
+                
+                if(isPaused){
+                    clip.stop(); 
+                }else{
+                    clip.start(); 
+                }
+            }
+        }
+        
+        clip.close(); 
     } 
     
-    public void pause() // Method to pause the audio 
+    public void pause() 
     { 
-        if (status.equals("paused"))  
-        { 
-            System.out.println("audio is already paused"); 
-            return; 
-        } 
-        this.current = this.clip.getMicrosecondPosition(); 
-        clip.stop(); 
-        status = "paused"; 
+        isPaused = true; 
     } 
       
-    // Method to resume the audio 
     public void resume()                       
     { 
-        try{
-          if (status.equals("play"))  
-          { 
-             System.out.println("Audio is already being played"); 
-             return; 
-          } 
-          clip.close(); 
-          resetAudioStream(); 
-          clip.setMicrosecondPosition(current); 
-          this.play(); 
-       }catch(Exception ex){
-          ex.getMessage(); 
-       }
+       isPaused = false; 
     } 
-      
+       
+    public void stop() 
+    { 
+       isStopped = true; 
+    } 
+    
     // Method to restart the audio 
     public void restart()                                         
     { 
@@ -93,19 +143,7 @@ public class Audio
            ex.getMessage(); 
        }
     } 
-      
-    // Method to stop the audio 
-    public void stop() 
-    { 
-        try{
-        current = 0L; 
-        clip.stop(); 
-        clip.close(); 
-       }catch(Exception ex){
-           ex.getMessage();
-       }
-    } 
-      
+    
     // Method to jump over a specific part 
     public void jump(long c)                                          
     { 
@@ -120,11 +158,10 @@ public class Audio
             this.play(); 
           } 
       }catch(Exception ex){
-        ex.getMessage(); 
+         ex.getMessage(); 
       }
     } 
       
-    // Method to reset audio stream 
     public void resetAudioStream()                                 
     { 
        try{
@@ -133,12 +170,27 @@ public class Audio
         clip.open(audioInputStream); 
         clip.loop(Clip.LOOP_CONTINUOUSLY); 
       }catch(Exception ex){
-        ex.getMessage(); 
+         ex.getMessage(); 
       }
     } 
+    
+    //notice play completed
+    public void update(LineEvent event) {
+	LineEvent.Type type = event.getType();
+	if (type == LineEvent.Type.STOP) {
+	    System.out.println("STOP");
+	    if (isStopped || !isPaused) {
+		playCompleted = true;
+	    }
+	}
+    }
     
     //Method to exit
     public void exit(){
         System.exit(0);
+    }
+    
+    public Clip getClip(){
+        return clip; 
     }
 }

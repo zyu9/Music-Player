@@ -57,7 +57,7 @@ public class GUI
         stop.setVisible(true);
         mainPanel.add(stop);
         
-        restart = new JButton(icon3);
+        restart = new JButton(icon4);
         restart.addActionListener(new MyRestartListener());
         restart.setVisible(true);
         mainPanel.add(stop);

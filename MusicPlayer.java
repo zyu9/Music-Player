@@ -1,8 +1,8 @@
 /**
- * Write a description of class MusicPlayer here.
+ * This contains the main method for lanuch the whole program. 
  *
  * @author (Zhiyan Yu)
- * @version (9/12/2020-9/14/2020)
+ * @version (9/12/2020-9/19/2020)
  */
 public class MusicPlayer
 {
