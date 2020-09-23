@@ -1,3 +1,4 @@
+import javax.swing.*; 
 /**
  * This contains the main method for lanuch the whole program. 
  *
@@ -7,6 +8,11 @@
 public class MusicPlayer
 {
     public static void main(String[] args) {
+        try {
+	   UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+	} catch (Exception ex) {
+	   ex.printStackTrace();
+	}
         MusicPlayer musicPlayer = new MusicPlayer(); 
         musicPlayer.startup(); 
     }

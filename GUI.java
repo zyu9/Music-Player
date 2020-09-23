@@ -2,13 +2,14 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.io.*; 
 import javax.swing.*; 
 import javax.sound.sampled.*; 
 /**
  * Write a description of class GUI here.
  *
  * @author (zyu9)
- * @version (9/13/2020; 9/21/2020)
+ * @version (9/13/2020; 9/21/2020; 9/23/2020)
  */
 public class GUI
 {
@@ -16,7 +17,7 @@ public class GUI
     private Audio audio = new Audio();
     private Timer timer = new Timer(); 
     private Thread playbackThread; 
-    
+   
     private boolean isPlaying = false;
     private boolean isPause = false; 
     
@@ -35,17 +36,15 @@ public class GUI
     private ImageIcon iconStop = new ImageIcon("./stop.png"); 
     private ImageIcon iconPause = new ImageIcon("./pause.png"); 
     private ImageIcon iconRestart = new ImageIcon("./restart.png"); 
+    private ImageIcon iconWallpaper = new ImageIcon("./wallpaper.jpg");
     
     private JPanel mainPanel;
     private JFrame theFrame;
     private JMenuItem menuItem1,menuItem2; 
-    private JList fileList;
     private JSlider slider;
-    private JLabel infoLabel;
     
     public void buildGUI(){        
         theFrame = new JFrame("Music Player");
-        theFrame.setDefaultCloseOperation(theFrame.EXIT_ON_CLOSE);
         BorderLayout layout = new BorderLayout();
         GridBagLayout grid = new GridBagLayout();
 	GridBagConstraints constraints = new GridBagConstraints();
@@ -58,12 +57,11 @@ public class GUI
         theFrame.setLayout(layout);
         mainPanel.setLayout(grid);//flow
         
-        theFrame.getContentPane().setBackground(Color.BLACK);
-        
         buttonPlay.setFont(new Font("Sans", Font.BOLD, 14));
         buttonPlay.setIcon(iconPlay);
 	buttonPlay.addActionListener(new MyPlayListener());
         buttonPlay.setEnabled(false);
+        buttonPlay.setVisible(true);
         
         buttonStop.setFont(new Font("Sans", Font.BOLD, 14));
 	buttonStop.setIcon(iconStop);
@@ -74,6 +72,7 @@ public class GUI
 	buttonPause.setIcon(iconPause);
         buttonPause.addActionListener(new MyPauseListener());
         buttonPause.setEnabled(false);
+        buttonPause.setVisible(true);
 	
         buttonRestart.setFont(new Font("Sans", Font.BOLD, 14));
 	buttonRestart.setIcon(iconRestart);
@@ -103,13 +102,10 @@ public class GUI
 	constraints.gridx = 2;
 	mainPanel.add(labelDuration, constraints);
 	
-        //theFrame.add(new JLabel(icon5), BorderLayout.CENTER);
+        theFrame.add(new JLabel(iconWallpaper), BorderLayout.CENTER);
         theFrame.add(mainPanel, BorderLayout.SOUTH);
 
         theFrame.setSize(500, 500);
-        theFrame.setLocationRelativeTo(null);
-        theFrame.setVisible(true);
-        theFrame.setFocusable(true);
         
         JPanel panelButtons = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
 	panelButtons.add(buttonPlay);
@@ -120,7 +116,14 @@ public class GUI
 	constraints.gridwidth = 3;
 	constraints.gridx = 0;
 	constraints.gridy = 2;
-	mainPanel.add(panelButtons, constraints); 
+	mainPanel.add(panelButtons, constraints);
+	
+	theFrame.pack();
+        theFrame.setResizable(true);
+        theFrame.setDefaultCloseOperation(theFrame.EXIT_ON_CLOSE);
+        theFrame.setLocationRelativeTo(null);
+        theFrame.setVisible(true);
+        theFrame.setFocusable(true);
     }
     
     /**
@@ -152,15 +155,36 @@ public class GUI
         menu.add(menuItem3);
     }
     
-    /**
-     * Display information about the selected song(name + length)
-     * @param message - displayed message
-     */
-    private void showInfo(String message){
-        infoLabel.setText(message);
-    }
-    
     private void playBack(){
+        timer.playingTimer(labelTimeCounter, sliderTime);
+        timer.run();
+        isPlaying = true; 
+        playbackThread = new Thread(new Runnable() {
+
+	public void run() {
+	try {
+	   buttonPlay.setText("Stop");
+	   buttonPlay.setIcon(iconStop);
+	   buttonPlay.setEnabled(true);
+					
+	   buttonPause.setText("Pause");
+	   buttonPause.setEnabled(true);
+					
+	   timer.setClip(audio.getClip());
+	   labelFileName.setText("Playing File: " + audio.getAudioFilePath());
+	   sliderTime.setMaximum((int) audio.getClipSecondLength());
+					
+	   labelDuration.setText(audio.getClipLengthString());
+	   audio.play();
+				
+	   resetControls();
+	} catch (Exception ex) {
+	   resetControls();
+	   ex.printStackTrace();
+      }
+     }
+     });
+	playbackThread.start();
     }
     
     private void stopPlaying(){
@@ -174,9 +198,31 @@ public class GUI
     }
     
     private void pausePlaying(){
+        buttonPause.setText("Resume");
+	isPause = true;
+	audio.pause();
+	timer.pauseTimer();
+	playbackThread.interrupt();
     }
     
     private void resumePlaying(){
+        buttonPause.setText("Pause");
+	isPause = false;
+	audio.resume();
+	timer.resumeTimer();
+	playbackThread.interrupt();
+    }
+    
+    private void resetControls() {
+	timer.reset();
+	//timer.interrupt();
+
+	buttonPlay.setText("Play");
+	buttonPlay.setIcon(iconPlay);
+		
+	buttonPause.setEnabled(false);
+		
+	isPlaying = false;		
     }
     
     public class MyMenuItem1Listener implements ActionListener{
@@ -187,6 +233,10 @@ public class GUI
          if (e.getSource() instanceof JMenuItem) {
            if (((JMenuItem) (e.getSource())) == menuItem1) {
                 audio.openFile();
+                if (isPlaying || isPause) {
+		    stopPlaying();
+		}
+                playBack();
            }
          }
        }
@@ -247,18 +297,4 @@ public class GUI
         }
     }
     
-    public class MyPlayListListener implements ActionListener{
-        /**
-         * ActionListener method for display play list in a combo box
-         * @param e - details of the event
-         */
-        public void actionPerformed(ActionEvent e){
-            Audio audio = new Audio();
-            JComboBox box = (JComboBox)e.getSource();
-            String ordering = (String) box.getSelectedItem();
-            if(ordering != null) {
-                //audio.setListOrdering(ordering);
-            }
-        }
-    }
 }

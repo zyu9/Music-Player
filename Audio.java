@@ -1,7 +1,6 @@
 import java.io.*;
 import javax.swing.*; 
 import javax.sound.sampled.*; 
-
 /**
  * Write a description of class Audio here.
  *
@@ -27,12 +26,21 @@ public class Audio
     DataLine.Info dataline; 
     File file;
     JFileChooser jfilechooser; 
+    public String audioFilePath;
+    public String lastOpenPath; 
     
     public void openFile() {
        try{
         jfilechooser = new JFileChooser();
+        if (lastOpenPath != null && !lastOpenPath.equals("")) {
+		jfilechooser = new JFileChooser(lastOpenPath);
+	} else {
+		jfilechooser = new JFileChooser();
+	}
         jfilechooser.showOpenDialog(null);
         file = jfilechooser.getSelectedFile();
+        audioFilePath = jfilechooser.getSelectedFile().getAbsolutePath();
+	lastOpenPath = jfilechooser.getSelectedFile().getParent();
         
         audioInputStream = AudioSystem.getAudioInputStream(file);
         
@@ -48,6 +56,10 @@ public class Audio
        }catch(Exception ex){
          ex.getMessage();
        }
+    }
+    
+    public String getAudioFilePath(){
+        return audioFilePath; 
     }
     
     public long getClipSecondLength() {
