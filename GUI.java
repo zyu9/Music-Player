@@ -1,74 +1,126 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import javax.swing.*; 
-
+import javax.sound.sampled.*; 
 /**
  * Write a description of class GUI here.
  *
  * @author (zyu9)
- * @version (9/13/2020)
+ * @version (9/13/2020; 9/21/2020)
  */
 public class GUI
 {
-    private static final String VERSION = "Version 0.2"; 
+    private static final String VERSION = "Version 0.5"; 
+    private Audio audio = new Audio();
+    private Timer timer = new Timer(); 
+    private Thread playbackThread; 
     
-    private ImageIcon icon1, icon2, icon3, icon4, icon5;
+    private boolean isPlaying = false;
+    private boolean isPause = false; 
+    
+    private JLabel labelFileName = new JLabel("Playing File:");
+    private JLabel labelTimeCounter = new JLabel("00:00:00");
+    private JLabel labelDuration = new JLabel("00:00:00");
+	
+    private JButton buttonPlay = new JButton("Play");
+    private JButton buttonStop = new JButton("Stop");
+    private JButton buttonPause = new JButton("Pause");
+    private JButton buttonRestart = new JButton("Restart");
+    
+    private JSlider sliderTime = new JSlider();
+    
+    private ImageIcon iconPlay = new ImageIcon("./play.png"); 
+    private ImageIcon iconStop = new ImageIcon("./stop.png"); 
+    private ImageIcon iconPause = new ImageIcon("./pause.png"); 
+    private ImageIcon iconRestart = new ImageIcon("./restart.png"); 
+    
     private JPanel mainPanel;
     private JFrame theFrame;
     private JMenuItem menuItem1,menuItem2; 
     private JList fileList;
     private JSlider slider;
     private JLabel infoLabel;
-    private JButton play, pause, stop, restart; 
-    //private List<Track> trackList;
     
-    public void buildGUI(){
+    public void buildGUI(){        
         theFrame = new JFrame("Music Player");
         theFrame.setDefaultCloseOperation(theFrame.EXIT_ON_CLOSE);
         BorderLayout layout = new BorderLayout();
-        FlowLayout flow = new FlowLayout();
+        GridBagLayout grid = new GridBagLayout();
+	GridBagConstraints constraints = new GridBagConstraints();
+	constraints.insets = new Insets(5, 5, 5, 5);
+	constraints.anchor = GridBagConstraints.WEST;
         
         menuBar(); 
 
         mainPanel = new JPanel();
         theFrame.setLayout(layout);
-        mainPanel.setLayout(flow);
-
-        icon1 = new ImageIcon("./play.png");
-        icon2 = new ImageIcon("./pause.png");
-        icon3 = new ImageIcon("./stop.png");
-        icon4 = new ImageIcon("./restart.jpg");
-        icon5 = new ImageIcon("./wallpaper.jpg");
+        mainPanel.setLayout(grid);//flow
         
         theFrame.getContentPane().setBackground(Color.BLACK);
         
-        play = new JButton(icon1);
-        play.addActionListener(new MyPlayListener());
-        play.setVisible(true);
-        mainPanel.add(play);
+        buttonPlay.setFont(new Font("Sans", Font.BOLD, 14));
+        buttonPlay.setIcon(iconPlay);
+	buttonPlay.addActionListener(new MyPlayListener());
+        buttonPlay.setEnabled(false);
         
-        pause = new JButton(icon2);
-        pause.addActionListener(new MyPlayListener());
-        pause.setVisible(true);
-        mainPanel.add(pause);
+        buttonStop.setFont(new Font("Sans", Font.BOLD, 14));
+	buttonStop.setIcon(iconStop);
+        buttonStop.addActionListener(new MyStopListener());
+        buttonStop.setVisible(true);
+     
+	buttonPause.setFont(new Font("Sans", Font.BOLD, 14));
+	buttonPause.setIcon(iconPause);
+        buttonPause.addActionListener(new MyPauseListener());
+        buttonPause.setEnabled(false);
+	
+        buttonRestart.setFont(new Font("Sans", Font.BOLD, 14));
+	buttonRestart.setIcon(iconRestart);
+        buttonRestart.addActionListener(new MyRestartListener());
+        buttonRestart.setVisible(true); 
         
-        stop = new JButton(icon3);
-        stop.addActionListener(new MyStopListener());
-        stop.setVisible(true);
-        mainPanel.add(stop);
-        
-        restart = new JButton(icon4);
-        restart.addActionListener(new MyRestartListener());
-        restart.setVisible(true);
-        mainPanel.add(stop);
-
-        theFrame.add(new JLabel(icon5), BorderLayout.CENTER);
+	labelTimeCounter.setFont(new Font("Sans", Font.BOLD, 12));
+	labelDuration.setFont(new Font("Sans", Font.BOLD, 12));
+		
+	sliderTime.setPreferredSize(new Dimension(400, 20));
+	sliderTime.setEnabled(false);
+	sliderTime.setValue(0);
+	
+	constraints.gridx = 0;
+	constraints.gridy = 0;
+	constraints.gridwidth = 3;
+	mainPanel.add(labelFileName, constraints);
+		
+	constraints.anchor = GridBagConstraints.CENTER;
+	constraints.gridy = 1;
+	constraints.gridwidth = 1;
+	mainPanel.add(labelTimeCounter, constraints);
+		
+	constraints.gridx = 1;
+	mainPanel.add(sliderTime, constraints);
+		
+	constraints.gridx = 2;
+	mainPanel.add(labelDuration, constraints);
+	
+        //theFrame.add(new JLabel(icon5), BorderLayout.CENTER);
         theFrame.add(mainPanel, BorderLayout.SOUTH);
 
         theFrame.setSize(500, 500);
         theFrame.setLocationRelativeTo(null);
         theFrame.setVisible(true);
         theFrame.setFocusable(true);
+        
+        JPanel panelButtons = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
+	panelButtons.add(buttonPlay);
+	panelButtons.add(buttonStop);
+	panelButtons.add(buttonPause);
+	panelButtons.add(buttonRestart);
+		
+	constraints.gridwidth = 3;
+	constraints.gridx = 0;
+	constraints.gridy = 2;
+	mainPanel.add(panelButtons, constraints); 
     }
     
     /**
@@ -108,6 +160,25 @@ public class GUI
         infoLabel.setText(message);
     }
     
+    private void playBack(){
+    }
+    
+    private void stopPlaying(){
+        isPause = false;
+	buttonPause.setText("Pause");
+	buttonPause.setEnabled(false);
+	timer.reset();
+	//timer.interrupt();
+	audio.stop();
+	playbackThread.interrupt();
+    }
+    
+    private void pausePlaying(){
+    }
+    
+    private void resumePlaying(){
+    }
+    
     public class MyMenuItem1Listener implements ActionListener{
        public void actionPerformed(ActionEvent e) 
        {
@@ -130,22 +201,36 @@ public class GUI
     
     public class MyPlayListener implements ActionListener{
         public void actionPerformed(ActionEvent e){
-            Audio audio = new Audio(); 
-            audio.play(); 
+        Object source = e.getSource();
+	if (source instanceof JButton) {
+	   JButton button = (JButton) source;
+            if(button == buttonPlay){
+              if (!isPlaying) {
+		  playBack();
+	      }else{
+		  stopPlaying();
+	      }
+           }
         }
+      }
     }
     
     public class MyPauseListener implements ActionListener{
         public void actionPerformed(ActionEvent e){
-            Audio audio = new Audio();
-            if(pause.getIcon() == icon2)
+            Object source = e.getSource();
+            if(source instanceof JButton){
+                JButton button = (JButton) source; 
+            if(button == buttonPause)
             {
-              pause.setIcon(icon1);
-              audio.pause(); 
-           }else if(pause.getIcon() == icon1){
-               pause.setIcon(icon2);
-           }
+                if(isPause){
+                    pausePlaying();
+                }else{
+                    resumePlaying(); 
+                }
+            }
         }
+        
+     }
     }
     
     public class MyStopListener implements ActionListener{
